@@ -1,0 +1,27 @@
+/// SE202 Mobile Programming — Lab 2, Exercise 10.2
+/// Ruxsoraxon Kenjayeva · Student ID 240415 · New Uzbekistan University
+
+abstract class Shape {
+  double area();
+}
+
+class Circle extends Shape {
+  final double r;
+  Circle(this.r);
+  @override
+  double area() => 3.14159 * r * r;
+}
+
+class Rectangle extends Shape {
+  final double w, h;
+  Rectangle(this.w, this.h);
+  @override
+  double area() => w * h;
+}
+
+void main() {
+  final List<Shape> shapes = [Circle(1), Rectangle(2, 3)];
+  for (final s in shapes) {
+    print('${s.runtimeType}: ${s.area().toStringAsFixed(2)}');
+  }
+}
