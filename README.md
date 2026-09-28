@@ -53,7 +53,9 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex7_6.dart` | Enums | Generic enum with static helper methods |
 | `lab2_240415/ex8_2.dart` | Inheritance | `Dog` overriding `Animal.makeSound()` |
 | `lab2_240415/ex8_3.dart` | Inheritance | Super-initializer parameters (`super.brand`) |
+| `lab2_240415/ex8_4.dart` | Inheritance | Multi-level hierarchy Shape → Polygon → Triangle |
 | `lab2_240415/ex8_5.dart` | Inheritance | Abstract base class with concrete and abstract methods |
+| `lab2_240415/ex8_6.dart` | Inheritance | `base` and `final` class modifiers |
 | `lab2_240415/ex9_3.dart` | Mixins & Interfaces | `Flyable` mixin applied to `Bird` |
 | `lab2_240415/ex9_4.dart` | Mixins & Interfaces | `Walker`, `Swimmer`, `Flyable` on one `Duck` |
 | `lab2_240415/ex9_5.dart` | Mixins & Interfaces | Restricting a mixin with `on` |
