@@ -68,7 +68,9 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex10_6.dart` | Polymorphism | Strategy pattern with swappable sort strategies |
 | `lab2_240415/ex11_2.dart` | Async Operations | Simulated database lookup with a 2-second delay |
 | `lab2_240415/ex11_3.dart` | Async Operations | `Future.wait()` running three tasks concurrently |
+| `lab2_240415/ex11_4.dart` | Async Operations | Periodic stream cancelled after 5 ticks |
 | `lab2_240415/ex11_5.dart` | Async Operations | Stream `map()`, `where()` and `distinct()` |
+| `lab2_240415/ex11_6.dart` | Async Operations | Stream error handling with `handleError` |
 | `lab2_240415/ex12_2.dart` | Exceptions & Error Handling | Integer division by zero caught as `UnsupportedError` |
 | `lab2_240415/ex12_3.dart` | Exceptions & Error Handling | `ArgumentError` for a null or empty string |
 | `lab2_240415/ex12_4.dart` | Exceptions & Error Handling | Specific `on` clauses before a generic `catch` |
