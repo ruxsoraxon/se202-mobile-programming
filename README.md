@@ -48,7 +48,9 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex6_6.dart` | Classes & Constructors | Immutable class with `const` constructor and `final` fields |
 | `lab2_240415/ex7_2.dart` | Enums | `Day` enum iterated with `Day.values` |
 | `lab2_240415/ex7_3.dart` | Enums | Enum to display string with a switch expression |
+| `lab2_240415/ex7_4.dart` | Enums | Enhanced enum implementing an interface |
 | `lab2_240415/ex7_5.dart` | Enums | Safe parsing with `Day.values.byName()` |
+| `lab2_240415/ex7_6.dart` | Enums | Generic enum with static helper methods |
 | `lab2_240415/ex8_2.dart` | Inheritance | `Dog` overriding `Animal.makeSound()` |
 | `lab2_240415/ex8_3.dart` | Inheritance | Super-initializer parameters (`super.brand`) |
 | `lab2_240415/ex8_5.dart` | Inheritance | Abstract base class with concrete and abstract methods |
