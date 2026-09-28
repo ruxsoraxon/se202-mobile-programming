@@ -74,6 +74,8 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex12_2.dart` | Exceptions & Error Handling | Integer division by zero caught as `UnsupportedError` |
 | `lab2_240415/ex12_3.dart` | Exceptions & Error Handling | `ArgumentError` for a null or empty string |
 | `lab2_240415/ex12_4.dart` | Exceptions & Error Handling | Specific `on` clauses before a generic `catch` |
+| `lab2_240415/ex12_5.dart` | Exceptions & Error Handling | Printing the full stack trace |
+| `lab2_240415/ex12_6.dart` | Exceptions & Error Handling | Logging then passing the error up with `rethrow` |
 
 ## Running
 
