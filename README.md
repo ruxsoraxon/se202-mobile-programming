@@ -63,7 +63,9 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex9_6.dart` | Mixins & Interfaces | `implements` vs `with` compared |
 | `lab2_240415/ex10_2.dart` | Polymorphism | `area()` called on a list of shapes |
 | `lab2_240415/ex10_3.dart` | Polymorphism | Type checks with `is` and casts with `as` |
+| `lab2_240415/ex10_4.dart` | Polymorphism | Generic `Repository<T>` (parametric polymorphism) |
 | `lab2_240415/ex10_5.dart` | Polymorphism | Sealed classes with an exhaustive switch |
+| `lab2_240415/ex10_6.dart` | Polymorphism | Strategy pattern with swappable sort strategies |
 | `lab2_240415/ex11_2.dart` | Async Operations | Simulated database lookup with a 2-second delay |
 | `lab2_240415/ex11_3.dart` | Async Operations | `Future.wait()` running three tasks concurrently |
 | `lab2_240415/ex11_5.dart` | Async Operations | Stream `map()`, `where()` and `distinct()` |
