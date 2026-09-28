@@ -56,9 +56,11 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex8_4.dart` | Inheritance | Multi-level hierarchy Shape → Polygon → Triangle |
 | `lab2_240415/ex8_5.dart` | Inheritance | Abstract base class with concrete and abstract methods |
 | `lab2_240415/ex8_6.dart` | Inheritance | `base` and `final` class modifiers |
+| `lab2_240415/ex9_2.dart` | Mixins & Interfaces | `DBConnector` interface implemented by `MySQLConnector` |
 | `lab2_240415/ex9_3.dart` | Mixins & Interfaces | `Flyable` mixin applied to `Bird` |
 | `lab2_240415/ex9_4.dart` | Mixins & Interfaces | `Walker`, `Swimmer`, `Flyable` on one `Duck` |
 | `lab2_240415/ex9_5.dart` | Mixins & Interfaces | Restricting a mixin with `on` |
+| `lab2_240415/ex9_6.dart` | Mixins & Interfaces | `implements` vs `with` compared |
 | `lab2_240415/ex10_2.dart` | Polymorphism | `area()` called on a list of shapes |
 | `lab2_240415/ex10_3.dart` | Polymorphism | Type checks with `is` and casts with `as` |
 | `lab2_240415/ex10_5.dart` | Polymorphism | Sealed classes with an exhaustive switch |
