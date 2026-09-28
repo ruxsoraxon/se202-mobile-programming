@@ -43,7 +43,9 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex5_6.dart` | Comments & Documentation | Fully documented API class for `dart doc` |
 | `lab2_240415/ex6_2.dart` | Classes & Constructors | `Person` class with a standard constructor |
 | `lab2_240415/ex6_3.dart` | Classes & Constructors | Initializer list validating input |
+| `lab2_240415/ex6_4.dart` | Classes & Constructors | Singleton with a private constructor and factory |
 | `lab2_240415/ex6_5.dart` | Classes & Constructors | Getter and setter enforcing constraints |
+| `lab2_240415/ex6_6.dart` | Classes & Constructors | Immutable class with `const` constructor and `final` fields |
 | `lab2_240415/ex7_2.dart` | Enums | `Day` enum iterated with `Day.values` |
 | `lab2_240415/ex7_3.dart` | Enums | Enum to display string with a switch expression |
 | `lab2_240415/ex7_5.dart` | Enums | Safe parsing with `Day.values.byName()` |
