@@ -12,7 +12,7 @@ Professor: Mukhkammadali Khayotov · Dart 3.x
 Lab 2 workbook solutions:
 
 - **Sections 1–4** — four exercises from each category.
-- **Sections 5–12** — three exercises from each category.
+- **Sections 5–12** — five exercises from each category.
 
 Exercise 1 of every category was given as a worked example in the handout.
 
@@ -38,7 +38,9 @@ Exercise 1 of every category was given as a worked example in the handout.
 | `lab2_240415/ex4_5.dart` | Functions / Methods | Recursive Fibonacci |
 | `lab2_240415/ex5_2.dart` | Comments & Documentation | Single-line and multi-line comments on a calculation |
 | `lab2_240415/ex5_3.dart` | Comments & Documentation | Dartdoc for a validation utility (params, return, exceptions) |
+| `lab2_240415/ex5_4.dart` | Comments & Documentation | Markdown inside a Dartdoc comment |
 | `lab2_240415/ex5_5.dart` | Comments & Documentation | `@Deprecated` and `@override` with doc comments |
+| `lab2_240415/ex5_6.dart` | Comments & Documentation | Fully documented API class for `dart doc` |
 | `lab2_240415/ex6_2.dart` | Classes & Constructors | `Person` class with a standard constructor |
 | `lab2_240415/ex6_3.dart` | Classes & Constructors | Initializer list validating input |
 | `lab2_240415/ex6_5.dart` | Classes & Constructors | Getter and setter enforcing constraints |
