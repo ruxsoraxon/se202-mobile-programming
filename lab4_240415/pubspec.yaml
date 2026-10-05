@@ -1,0 +1,14 @@
+name: lab4_240415
+description: SE202 Lab 4 - Flutter mobile widgets (Ruxsoraxon Kenjayeva, 240415)
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
