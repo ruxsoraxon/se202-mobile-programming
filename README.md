@@ -85,3 +85,39 @@ Each file is a standalone Dart program — no `pubspec.yaml` required.
 dart run lab2_240415/ex1_2.dart
 dart run lab2_240415/ex1_4.dart 10 20 30   # exercises 1.3–1.5 take command-line arguments
 ```
+
+## Lab 5: Navigation & Routing in Flutter
+
+Flutter project in `lab5_240415/nav_lab/`. Task X.1 of each category was a worked example in the handout.
+Completed: sample X.1 of every category, plus tasks 1.2, 1.3, 2.2, 2.3, 3.2, 4.2, 5.2, 5.3, 5.4, 6.2 and 6.3.
+
+| File | Category | Task |
+|------|----------|------|
+| `lab5_240415/nav_lab/lib/t1_1_push_pop.dart` | Navigator: push and pop | Two screens with push and pop (sample) |
+| `lab5_240415/nav_lab/lib/t1_2_three_screens.dart` | Navigator: push and pop | Three-screen chain A → B → C |
+| `lab5_240415/nav_lab/lib/t1_3_replace.dart` | Navigator: push and pop | `pushReplacement` login to home |
+| `lab5_240415/nav_lab/lib/t2_1_named_routes.dart` | Named routes | Route table and `pushNamed` (sample) |
+| `lab5_240415/nav_lab/lib/t2_2_menu_routes.dart` | Named routes | Menu with four named routes |
+| `lab5_240415/nav_lab/lib/t2_3_not_found.dart` | Named routes | 404 page with `onUnknownRoute` |
+| `lab5_240415/nav_lab/lib/t3_1_products.dart` | Constructor arguments | Product list to details (sample) |
+| `lab5_240415/nav_lab/lib/t3_2_greeting.dart` | Constructor arguments | Greeting passed through a constructor |
+| `lab5_240415/nav_lab/lib/t4_1_screen_arguments.dart` | Named-route arguments | `ScreenArguments` class (sample) |
+| `lab5_240415/nav_lab/lib/t4_2_send_number.dart` | Named-route arguments | Send an `int` and show its square |
+| `lab5_240415/nav_lab/lib/t5_1_fade.dart` | Transition animations | Fade transition (sample) |
+| `lab5_240415/nav_lab/lib/t5_2_slide_right.dart` | Transition animations | Slide in from the right |
+| `lab5_240415/nav_lab/lib/t5_3_sheet.dart` | Transition animations | Slide in from the bottom with `CurvedAnimation` |
+| `lab5_240415/nav_lab/lib/t5_4_scale_fade.dart` | Transition animations | Scale and fade together |
+| `lab5_240415/nav_lab/lib/t6_1_go_router.dart` | go_router | `go` vs `push` (sample) |
+| `lab5_240415/nav_lab/lib/t6_2_path_params.dart` | go_router | Path parameters `/product/:id` |
+| `lab5_240415/nav_lab/lib/t6_3_extra.dart` | go_router | Passing an object with `extra` |
+
+### Running a task
+
+Every task file has its own `main()`. `lib/main.dart` is a launcher: set `selected` to a task number
+(for example `'5.2'`), then run or hot-restart (`R`).
+
+```bash
+cd lab5_240415/nav_lab
+flutter pub get
+flutter run -d chrome
+```
