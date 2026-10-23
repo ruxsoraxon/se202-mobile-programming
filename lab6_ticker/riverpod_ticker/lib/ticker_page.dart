@@ -13,6 +13,8 @@ class TickerPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Live ticker')),
       body: switch (ticks) {
+        AsyncData(value: []) => const Center(child: Text('No symbols subscribed')),
+        AsyncData(value: [final only]) => Center(child: TickRow(only)),
         AsyncData(:final value) => ListView(
             children: [for (final t in value) TickRow(t, key: ValueKey(t.symbol))],
           ),
