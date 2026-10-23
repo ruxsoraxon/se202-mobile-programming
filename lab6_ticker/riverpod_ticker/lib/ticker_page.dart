@@ -11,7 +11,21 @@ class TickerPage extends ConsumerWidget {
     final ticks = ref.watch(tickerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Live ticker')),
+            appBar: AppBar(
+        title: const Text('Live ticker'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            tooltip: 'Fail after 5 ticks',
+            onPressed: () => ref.read(failAfterProvider.notifier).state = 5,
+          ),
+          IconButton(
+            icon: const Icon(Icons.wifi),
+            tooltip: 'Stop failing',
+            onPressed: () => ref.read(failAfterProvider.notifier).state = null,
+          ),
+        ],
+      ),
       body: switch (ticks) {
         AsyncData(value: []) => const Center(child: Text('No symbols subscribed')),
         AsyncData(value: [final only]) => Center(child: TickRow(only)),
