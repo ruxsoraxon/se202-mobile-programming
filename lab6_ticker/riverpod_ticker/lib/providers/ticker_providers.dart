@@ -15,3 +15,11 @@ final tickerProvider = StreamProvider.autoDispose<List<Tick>>(
   (ref) => ref.watch(tickFeedProvider).watch(),
   retry: (retryCount, error) => null, // Riverpod 3 retries errors by default; off for this demo
 );
+
+
+/// One Tick per symbol, derived from the big list state.
+final tickProvider = Provider.autoDispose.family<AsyncValue<Tick>, String>((ref, symbol) {
+  return ref.watch(tickerProvider).whenData(
+        (ticks) => ticks.firstWhere((t) => t.symbol == symbol),
+      );
+});
