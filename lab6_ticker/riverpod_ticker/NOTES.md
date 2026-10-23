@@ -35,3 +35,7 @@ So the compiler tells me when I forget a state.
 4. A switch checks arms from top to bottom and takes the first match. A state that is loading but still holds old data would also match the general AsyncData(:final value) arm, which would draw plain rows and hide the progress bar. So AsyncValue(:final value?, isLoading: true) must sit above it.
 
 5. A switch expression is checked for completeness by the compiler, and it can match on content and conditions (empty list, value?, isLoading: true). .when is still convenient for simple cases with just data, error and loading callbacks and no extra conditions, because it is shorter.
+
+## Stretch 4: AsyncValue.guard
+
+balanceProvider is a one-shot FutureProvider whose body is AsyncValue.guard(...). guard catches the exception and returns it as an AsyncError value, so the provider itself finishes as AsyncData that contains an AsyncError (see the nested switch in BalanceDialog). In the stream case the error arrives as an AsyncError on the provider itself, keeps the previous value, and Riverpod 3 would retry it automatically. With guard the error never reaches the provider, so there is no automatic retry and the screen has to unwrap the inner value.
