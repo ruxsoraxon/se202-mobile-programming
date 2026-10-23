@@ -43,11 +43,21 @@ class TickerPage extends ConsumerWidget {
         AsyncError(:final error, :final value?) => Column(
           children: [
             MaterialBanner(
-              content: Text('Feed error: $error, showing last prices'),
+              content: ListenableBuilder(
+                listenable: Listenable.merge([retryAttempt, retryGaveUp]),
+                builder: (context, _) {
+                  final status = retryGaveUp.value
+                      ? ' (gave up after $maxRetries retries)'
+                      : retryAttempt.value > 0
+                          ? ' (auto retry ${retryAttempt.value} of $maxRetries)'
+                          : '';
+                  return Text('Feed error: $error, showing last prices$status');
+                },
+              ),
               actions: [
                 TextButton(
-                  onPressed: () => ref.invalidate(tickerProvider),
-                  child: const Text('Retry'),
+                  onPressed: () => retryNow(ref),
+                  child: const Text('Retry now'),
                 ),
               ],
             ),
@@ -75,7 +85,7 @@ class TickerPage extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               FilledButton(
-                onPressed: () => ref.invalidate(tickerProvider),
+                onPressed: () => retryNow(ref),
                 child: const Text('Retry'),
               ),
             ],
@@ -86,6 +96,20 @@ class TickerPage extends ConsumerWidget {
         AsyncValue(:final value?, isLoading: true) => Column(
           children: [
             const LinearProgressIndicator(),
+            ListenableBuilder(
+              listenable: retryAttempt,
+              builder: (context, _) => retryAttempt.value == 0
+                  ? const SizedBox.shrink()
+                  : Container(
+                      width: double.infinity,
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        'Feed error, showing last prices '
+                        '(auto retry ${retryAttempt.value} of $maxRetries)',
+                      ),
+                    ),
+            ),
             Expanded(
               child: ListView(
                 children: [

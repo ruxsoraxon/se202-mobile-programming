@@ -16,6 +16,8 @@ Widget harness(Override o) => ProviderScope(
 final sample = [Tick(symbol: 'BTC', price: 100, change: 1.5, at: DateTime(2026))];
 
 void main() {
+  setUpAll(() => backoffEnabled = false);
+
   testWidgets('loading shows spinner', (tester) async {
     await tester.pumpWidget(harness(
       tickerProvider.overrideWith((ref) => const Stream<List<Tick>>.empty()),

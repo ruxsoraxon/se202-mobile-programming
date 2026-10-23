@@ -4,6 +4,8 @@ import 'package:riverpod_ticker/providers/ticker_providers.dart';
 import 'package:riverpod_ticker/services/tick_feed.dart';
 
 void main() {
+  setUpAll(() => backoffEnabled = false);
+
   test('starts loading, then emits data', () async {
     final container = ProviderContainer(overrides: [
       tickFeedProvider.overrideWithValue(TickFeed(symbols: const ['BTC'])),
