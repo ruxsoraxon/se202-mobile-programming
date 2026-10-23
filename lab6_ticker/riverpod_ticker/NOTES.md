@@ -17,3 +17,9 @@ Analyzing riverpod_ticker...
 So the compiler tells me when I forget a state.
 
 3.4 The empty-list and one-item arms must come before the general AsyncData arm, because a switch takes the first arm that matches, and AsyncData(:final value) matches every list, so the special arms would never run.
+
+## Part 4
+
+4.3 I wrapped the list in a RefreshIndicator that calls ref.refresh(tickerProvider.future). The Retry button uses ref.invalidate, and with it the old rows stayed visible with a thin progress bar. Riverpod keeps the previous value and just sets isLoading, and my AsyncValue(:final value?, isLoading: true) arm draws it. ref.refresh(...future) returns a Future so RefreshIndicator can await it and keep its spinner until new data arrives. ref.invalidate returns nothing, so there is nothing to wait for.
+
+4.4 My arms already handle it: the isLoading-with-value arm sits above AsyncLoading(), so once there is an old value, the full-screen spinner never shows. isRefreshing means a forced recompute after a value existed (like Retry). isReloading means a recompute because a dependency changed (like the failAfter toggle changing tickFeedProvider).
