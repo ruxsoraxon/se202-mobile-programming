@@ -89,11 +89,12 @@ class TickerPage extends ConsumerWidget {
           child: Text('No symbols subscribed'),
         ),
         AsyncData(value: [final only]) => Center(child: TickRow(only)),
-        AsyncData(:final value) => ListView(
-          children: [
-            for (final t in value) TickRow(t, key: ValueKey(t.symbol)),
-          ],
-        ),
+                AsyncData(:final value) => RefreshIndicator(
+            onRefresh: () => ref.refresh(tickerProvider.future),
+            child: ListView(
+              children: [for (final t in value) TickRow(t, key: ValueKey(t.symbol))],
+            ),
+          ),
 
         AsyncLoading() => const Center(child: CircularProgressIndicator()),
       },
