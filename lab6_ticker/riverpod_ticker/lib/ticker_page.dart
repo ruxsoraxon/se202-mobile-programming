@@ -103,7 +103,7 @@ class TickerPage extends ConsumerWidget {
                 AsyncData(:final value) => RefreshIndicator(
             onRefresh: () => ref.refresh(tickerProvider.future),
             child: ListView(
-              children: [for (final t in value) TickRow(t, key: ValueKey(t.symbol))],
+              children: [for (final t in value) SymbolTickRow(t.symbol, key: ValueKey(t.symbol))],
             ),
           ),
 
