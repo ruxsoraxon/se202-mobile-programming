@@ -11,7 +11,7 @@ void main() {
     addTearDown(container.dispose);
 
     // keep the autoDispose provider alive while the test runs
-    final sub = container.listen(tickerProvider, (_, __) {});
+    final sub = container.listen(tickerProvider, (_, _) {});
     addTearDown(sub.close);
 
     expect(container.read(tickerProvider), isA<AsyncLoading<Object?>>());
@@ -27,7 +27,7 @@ void main() {
     ]);
     addTearDown(container.dispose);
 
-    final sub = container.listen(tickerProvider, (_, __) {});
+    final sub = container.listen(tickerProvider, (_, _) {});
     await container.read(tickerProvider.future);
     await Future<void>.delayed(const Duration(milliseconds: 600));
 
