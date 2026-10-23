@@ -5,6 +5,7 @@ import 'package:riverpod_ticker/models/tick.dart';
 import 'package:riverpod_ticker/providers/ticker_providers.dart';
 import 'package:riverpod_ticker/ticker_page.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'dart:async';
 
 Widget harness(Override o) => ProviderScope(
       retry: (retryCount, error) => null,
@@ -40,5 +41,25 @@ void main() {
     await tester.pump();
     expect(find.text('Retry'), findsOneWidget);
     expect(find.byType(MaterialBanner), findsNothing);
+  });
+
+    testWidgets('error after data shows banner over rows', (tester) async {
+    final controller = StreamController<List<Tick>>();
+    addTearDown(controller.close);
+
+    await tester.pumpWidget(harness(
+      tickerProvider.overrideWith((ref) => controller.stream),
+    ));
+
+    controller.add(sample);
+    await tester.pump();
+    await tester.pump();
+
+    controller.addError('boom');
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(MaterialBanner), findsOneWidget);
+    expect(find.text('BTC'), findsOneWidget);
   });
 }
