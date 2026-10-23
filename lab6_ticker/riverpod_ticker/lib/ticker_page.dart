@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/ticker_providers.dart';
+import 'widgets/symbol_tick_row.dart';
 import 'widgets/tick_row.dart';
 
 import 'widgets/balance_dialog.dart';
@@ -88,7 +89,7 @@ class TickerPage extends ConsumerWidget {
             Expanded(
               child: ListView(
                 children: [
-                  for (final t in value) TickRow(t, key: ValueKey(t.symbol)),
+                  for (final t in value) SymbolTickRow(t.symbol, key: ValueKey(t.symbol))
                 ],
               ),
             ),
