@@ -23,3 +23,15 @@ So the compiler tells me when I forget a state.
 4.3 I wrapped the list in a RefreshIndicator that calls ref.refresh(tickerProvider.future). The Retry button uses ref.invalidate, and with it the old rows stayed visible with a thin progress bar. Riverpod keeps the previous value and just sets isLoading, and my AsyncValue(:final value?, isLoading: true) arm draws it. ref.refresh(...future) returns a Future so RefreshIndicator can await it and keep its spinner until new data arrives. ref.invalidate returns nothing, so there is nothing to wait for.
 
 4.4 My arms already handle it: the isLoading-with-value arm sits above AsyncLoading(), so once there is an old value, the full-screen spinner never shows. isRefreshing means a forced recompute after a value existed (like Retry). isReloading means a recompute because a dependency changed (like the failAfter toggle changing tickFeedProvider).
+
+## Checkpoint questions
+
+1. AsyncValue is sealed and has three subtypes: AsyncData, AsyncLoading and AsyncError. If a switch expression misses one, the analyzer reports a non_exhaustive_switch_expression error, e.g. "The type 'AsyncValue<List<Tick>>' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'AsyncLoading<List<Tick>>()'".
+
+2. AsyncError.value is non-null when a value existed before the error, for example the feed sends ticks and then fails (my banner over dimmed rows). It is null when the error happens before any data arrived, for example the first load fails (my "Could not load ticker" screen).
+
+3. ref.invalidate(provider) marks the state as stale and returns nothing; it recomputes when someone next needs it, or at once if a widget is watching it. ref.refresh(provider) invalidates it and returns the new state straight away. ref.refresh(provider.future) does the same but returns a Future for the new value, so you can await it, which is why RefreshIndicator uses it.
+
+4. A switch checks arms from top to bottom and takes the first match. A state that is loading but still holds old data would also match the general AsyncData(:final value) arm, which would draw plain rows and hide the progress bar. So AsyncValue(:final value?, isLoading: true) must sit above it.
+
+5. A switch expression is checked for completeness by the compiler, and it can match on content and conditions (empty list, value?, isLoading: true). .when is still convenient for simple cases with just data, error and loading callbacks and no extra conditions, because it is shorter.
