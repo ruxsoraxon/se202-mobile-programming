@@ -39,3 +39,7 @@ So the compiler tells me when I forget a state.
 ## Stretch 4: AsyncValue.guard
 
 balanceProvider is a one-shot FutureProvider whose body is AsyncValue.guard(...). guard catches the exception and returns it as an AsyncError value, so the provider itself finishes as AsyncData that contains an AsyncError (see the nested switch in BalanceDialog). In the stream case the error arrives as an AsyncError on the provider itself, keeps the previous value, and Riverpod 3 would retry it automatically. With guard the error never reaches the provider, so there is no automatic retry and the screen has to unwrap the inner value.
+
+## Stretch 1: per-symbol providers
+
+tickProvider is a Provider.family<AsyncValue<Tick>, String> that picks one symbol out of tickerProvider, and SymbolTickRow is a ConsumerWidget that watches only tickProvider(its symbol). The sheet uses tickerProvider.stream, but that getter does not exist in Riverpod 3.4.3, so I derived the value with whenData instead. With a debugPrint in build I saw BTC, ETH and SOL all rebuild on every tick. That is expected here: the simulated feed gives every symbol a new price on each tick, so every per-symbol provider changes each time. The split would only save rebuilds if just some symbols changed per tick.
