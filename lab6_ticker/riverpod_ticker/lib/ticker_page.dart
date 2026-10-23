@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers/ticker_providers.dart';
 import 'widgets/tick_row.dart';
 
+import 'widgets/balance_dialog.dart';
+
 class TickerPage extends ConsumerWidget {
   const TickerPage({super.key});
 
@@ -24,6 +26,14 @@ class TickerPage extends ConsumerWidget {
             icon: const Icon(Icons.wifi),
             tooltip: 'Stop failing',
             onPressed: () => ref.read(failAfterProvider.notifier).state = null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet),
+            tooltip: 'Account balance',
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (_) => const BalanceDialog(),
+            ),
           ),
         ],
       ),
