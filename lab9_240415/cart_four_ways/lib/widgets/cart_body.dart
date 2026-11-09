@@ -9,12 +9,14 @@ class CartBody extends StatefulWidget {
     required this.onAdd,
     required this.onQtyChanged,
     required this.onApplyCoupon,
+    this.showSummary = true,
   });
 
   final CartState state;
   final void Function(Product) onAdd;
   final void Function(String id, int delta) onQtyChanged;
   final void Function(String code) onApplyCoupon;
+  final bool showSummary;
 
   @override
   State<CartBody> createState() => _CartBodyState();
@@ -110,38 +112,49 @@ class _CartBodyState extends State<CartBody> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    children: [
-                      _SummaryRow(label: 'Items', value: '${state.itemCount}'),
-                      _SummaryRow(
-                        label: 'Subtotal',
-                        value: state.subtotal.toStringAsFixed(2),
-                      ),
-                      _SummaryRow(
-                        label: 'Discount',
-                        value: '-${state.discount.toStringAsFixed(2)}',
-                      ),
-                      const Divider(),
-                      _SummaryRow(
-                        label: 'Total',
-                        value: state.total.toStringAsFixed(2),
-                        valueKey: const ValueKey('cart-total'),
-                        bold: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              if (widget.showSummary) ...[
+                const SizedBox(height: 8),
+                CartSummary(state: state),
+              ],
             ],
           ),
         ),
       ],
     );
   }
+}
+
+class CartSummary extends StatelessWidget {
+  const CartSummary({super.key, required this.state});
+
+  final CartState state;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          _SummaryRow(label: 'Items', value: '${state.itemCount}'),
+          _SummaryRow(
+            label: 'Subtotal',
+            value: state.subtotal.toStringAsFixed(2),
+          ),
+          _SummaryRow(
+            label: 'Discount',
+            value: '-${state.discount.toStringAsFixed(2)}',
+          ),
+          const Divider(),
+          _SummaryRow(
+            label: 'Total',
+            value: state.total.toStringAsFixed(2),
+            valueKey: const ValueKey('cart-total'),
+            bold: true,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _SummaryRow extends StatelessWidget {
