@@ -13,11 +13,11 @@ class CartFourWaysApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'Cart: Four Ways',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
-        home: const StateManagementHome(),
-      );
+    title: 'Cart: Four Ways',
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
+    home: const StateManagementHome(),
+  );
 }
 
 class StateManagementHome extends StatefulWidget {
@@ -38,23 +38,25 @@ class _StateManagementHomeState extends State<StateManagementHome> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Shopping Cart')),
-        body: Column(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 0, label: Text('setState')),
-                ButtonSegment(value: 1, label: Text('Cubit')),
-                ButtonSegment(value: 2, label: Text('BLoC')),
-                ButtonSegment(value: 3, label: Text('Riverpod')),
-              ],
-              selected: {_selected},
-              onSelectionChanged: (selection) =>
-                  setState(() => _selected = selection.first),
-            ),
-          ),
-          Expanded(child: _pages[_selected]),
-        ]),
-      );
+    body: _pages[_selected],
+    bottomNavigationBar: NavigationBar(
+      selectedIndex: _selected,
+      onDestinationSelected: (index) => setState(() => _selected = index),
+      destinations: const [
+        NavigationDestination(icon: Icon(Icons.touch_app), label: 'setState'),
+        NavigationDestination(
+          icon: Icon(Icons.bubble_chart_outlined),
+          label: 'Cubit',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.account_tree_outlined),
+          label: 'BLoC',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.hub_outlined),
+          label: 'Riverpod',
+        ),
+      ],
+    ),
+  );
 }

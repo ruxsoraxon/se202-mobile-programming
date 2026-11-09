@@ -3,32 +3,45 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/cart.dart';
 import '../services/checkout_api.dart';
 
-class CartViewState {
-  const CartViewState({this.lines = const [], this.checkingOut = false, this.message});
-  final List<CartLine> lines;
-  final bool checkingOut;
-  final String? message;
-  CartViewState copyWith({List<CartLine>? lines, bool? checkingOut, String? message, bool clearMessage = false}) =>
-      CartViewState(lines: lines ?? this.lines, checkingOut: checkingOut ?? this.checkingOut,
-        message: clearMessage ? null : message ?? this.message);
-}
+final checkoutApiProvider = Provider<CheckoutApi>((ref) => CheckoutApi());
+final cartProvider = NotifierProvider<CartNotifier, CartState>(
+  CartNotifier.new,
+);
 
-final cartProvider = NotifierProvider<CartNotifier, CartViewState>(CartNotifier.new);
-
-class CartNotifier extends Notifier<CartViewState> {
-  final _api = CheckoutApi();
+class CartNotifier extends Notifier<CartState> {
   @override
-  CartViewState build() => const CartViewState();
-  void add(Product product) => state = state.copyWith(lines: state.lines.withProduct(product), clearMessage: true);
-  void remove(String id) => state = state.copyWith(lines: state.lines.without(id), clearMessage: true);
+  CartState build() => const CartState();
+
+  void add(Product product) =>
+      state = state.copyWith(lines: state.lines.withProduct(product));
+  void changeQty(String id, int delta) =>
+      state = state.copyWith(lines: state.lines.changeQty(id, delta));
+  void applyCoupon(String rawCode) {
+    final code = rawCode.trim().toUpperCase();
+    state = code == 'SAVE10'
+        ? state.copyWith(coupon: code, clearCouponError: true)
+        : state.copyWith(couponError: 'Invalid coupon code');
+  }
+
   Future<void> checkout() async {
-    state = state.copyWith(checkingOut: true, clearMessage: true);
+    state = state.copyWith(
+      status: CheckoutStatus.submitting,
+      clearCheckoutError: true,
+    );
     try {
-      final order = await _api.submit(state.lines.subtotal);
-      state = state.copyWith(lines: const [], checkingOut: false, message: 'Order placed: $order');
+      final order = await ref.read(checkoutApiProvider).submit(state.total);
+      state = state.copyWith(
+        lines: const [],
+        clearCoupon: true,
+        clearCouponError: true,
+        status: CheckoutStatus.success,
+        orderId: order,
+      );
     } on CheckoutException catch (error) {
-      state = state.copyWith(checkingOut: false, message: error.message);
+      state = state.copyWith(
+        status: CheckoutStatus.failure,
+        checkoutError: error.message,
+      );
     }
   }
-  void clearMessage() => state = state.copyWith(clearMessage: true);
 }
