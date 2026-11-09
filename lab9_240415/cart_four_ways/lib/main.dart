@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bloc/bloc.dart';
 
+import 'bloc/cart_bloc_observer.dart';
 import 'bloc/cart_page_bloc.dart';
 import 'cubit/cart_page_cubit.dart';
 import 'riverpod/cart_page_riverpod.dart';
 import 'setstate/cart_page_setstate.dart';
 
-void main() => runApp(const ProviderScope(child: CartFourWaysApp()));
+void main() {
+  Bloc.observer = CartBlocObserver();
+  runApp(const ProviderScope(child: CartFourWaysApp()));
+}
 
 class CartFourWaysApp extends StatelessWidget {
   const CartFourWaysApp({super.key});

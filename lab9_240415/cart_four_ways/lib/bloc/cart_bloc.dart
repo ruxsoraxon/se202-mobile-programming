@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 
 import '../models/cart.dart';
 import '../services/checkout_api.dart';
@@ -27,21 +28,21 @@ class CartBloc extends Bloc<CartEvent, CartState> {
             : state.copyWith(couponError: 'Invalid coupon code'),
       );
     });
-    on<CheckoutRequested>(_checkout);
+    on<CheckoutRequested>(_checkout, transformer: droppable());
     on<UndoRequested>((event, emit) {
-      if (_history.isEmpty) return;
-      final previous = _history.removeLast();
-      emit(previous.copyWith(canUndo: _history.isNotEmpty));
+      if (state.history.isEmpty) return;
+      final history = state.history;
+      emit(
+        history.last.restore(history: history.sublist(0, history.length - 1)),
+      );
     });
   }
 
   final CheckoutApi _api;
-  final List<CartState> _history = [];
-
   void _update(Emitter<CartState> emit, CartState next) {
     if (next == state) return;
-    _history.add(state);
-    emit(next.copyWith(canUndo: true));
+    final history = [...state.history, CartSnapshot.fromState(state)];
+    emit(next.copyWith(history: history, canUndo: true));
   }
 
   @override
@@ -69,7 +70,10 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     try {
       final order = await _api.submit(checkoutTotal);
       if (emit.isDone) return;
-      _history.add(state.copyWith(status: CheckoutStatus.idle));
+      final history = [
+        ...state.history,
+        CartSnapshot.fromState(state.copyWith(status: CheckoutStatus.idle)),
+      ];
       emit(
         state.copyWith(
           lines: const [],
@@ -77,6 +81,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           clearCouponError: true,
           status: CheckoutStatus.success,
           orderId: order,
+          history: history,
           canUndo: true,
         ),
       );

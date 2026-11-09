@@ -30,6 +30,69 @@ class CartLine {
 
 enum CheckoutStatus { idle, submitting, success, failure }
 
+class CartSnapshot {
+  const CartSnapshot({
+    this.lines = const [],
+    this.coupon,
+    this.couponError,
+    this.status = CheckoutStatus.idle,
+    this.orderId,
+    this.checkoutError,
+  });
+
+  factory CartSnapshot.fromState(CartState state) => CartSnapshot(
+    lines: state.lines,
+    coupon: state.coupon,
+    couponError: state.couponError,
+    status: state.status,
+    orderId: state.orderId,
+    checkoutError: state.checkoutError,
+  );
+
+  final List<CartLine> lines;
+  final String? coupon;
+  final String? couponError;
+  final CheckoutStatus status;
+  final String? orderId;
+  final String? checkoutError;
+
+  CartState restore({required List<CartSnapshot> history}) => CartState(
+    lines: lines,
+    coupon: coupon,
+    couponError: couponError,
+    status: status,
+    orderId: orderId,
+    checkoutError: checkoutError,
+    history: history,
+    canUndo: history.isNotEmpty,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CartSnapshot &&
+          other.coupon == coupon &&
+          other.couponError == couponError &&
+          other.status == status &&
+          other.orderId == orderId &&
+          other.checkoutError == checkoutError &&
+          other.lines.length == lines.length &&
+          List.generate(
+            lines.length,
+            (index) => lines[index] == other.lines[index],
+          ).every((same) => same);
+
+  @override
+  int get hashCode => Object.hash(
+    Object.hashAll(lines),
+    coupon,
+    couponError,
+    status,
+    orderId,
+    checkoutError,
+  );
+}
+
 class CartState {
   const CartState({
     this.lines = const [],
@@ -39,6 +102,7 @@ class CartState {
     this.orderId,
     this.checkoutError,
     this.canUndo = false,
+    this.history = const [],
   });
 
   final List<CartLine> lines;
@@ -48,6 +112,7 @@ class CartState {
   final String? orderId;
   final String? checkoutError;
   final bool canUndo;
+  final List<CartSnapshot> history;
 
   int get itemCount => lines.itemCount;
   double get subtotal => lines.subtotal;
@@ -66,6 +131,7 @@ class CartState {
     bool clearOrderId = false,
     bool clearCheckoutError = false,
     bool? canUndo,
+    List<CartSnapshot>? history,
   }) => CartState(
     lines: lines ?? this.lines,
     coupon: clearCoupon ? null : coupon ?? this.coupon,
@@ -76,6 +142,7 @@ class CartState {
         ? null
         : checkoutError ?? this.checkoutError,
     canUndo: canUndo ?? this.canUndo,
+    history: history ?? this.history,
   );
 
   @override
@@ -88,6 +155,11 @@ class CartState {
           other.orderId == orderId &&
           other.checkoutError == checkoutError &&
           other.canUndo == canUndo &&
+          other.history.length == history.length &&
+          List.generate(
+            history.length,
+            (index) => history[index] == other.history[index],
+          ).every((same) => same) &&
           other.lines.length == lines.length &&
           List.generate(
             lines.length,
@@ -103,6 +175,7 @@ class CartState {
     orderId,
     checkoutError,
     canUndo,
+    Object.hashAll(history),
   );
 }
 
