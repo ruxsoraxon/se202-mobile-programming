@@ -24,3 +24,12 @@
 ### Riverpod tests
 
 The provider tests run without pumping widgets. One checks two additions plus `SAVE10`; the other overrides the API with a mock that throws and verifies failure leaves the cart lines intact.
+
+## Part 4: Cubit
+
+- `BlocProvider` is placed above the page subtree so its descendants can access the Cubit. Putting it inside `CartBody` would scope it to that subtree, make it unavailable to the app bar and checkout controls, and risk creating a fresh Cubit when that body is rebuilt.
+- `context.read<CartCubit>()` performs one-off event/action access, `BlocBuilder` rebuilds from state, and `BlocListener` handles one-time effects such as snackbars. Riverpod equivalents are `ref.read`, `ref.watch`, and `ref.listen`.
+- The summary uses `BlocSelector` over just lines and coupon, so checkout status/error transitions do not rebuild it. The debug output makes those rebuilds visible. State equality compares all values and line contents; applying the same coupon twice produces an equal state and the second emission is dropped.
+- Undo history lives in the Cubit. Adding `canUndo` to immutable state makes history availability observable to widgets and keeps the Undo button declarative.
+- The Cubit tests assert the exact addition/coupon emissions and a failed checkout sequence, including that the cart remains intact.
+

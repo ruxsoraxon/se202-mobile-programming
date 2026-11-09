@@ -3,14 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/cart.dart';
 import '../widgets/cart_body.dart';
+import '../services/checkout_api.dart';
 import '../setstate/cart_page_setstate.dart' show CheckoutBar;
 import 'cart_cubit.dart';
 
 class CartPageCubit extends StatelessWidget {
   const CartPageCubit({super.key});
   @override
-  Widget build(BuildContext context) =>
-      BlocProvider(create: (_) => CartCubit(), child: const _CubitCartView());
+  Widget build(BuildContext context) => BlocProvider(
+    create: (_) => CartCubit(CheckoutApi()),
+    child: const _CubitCartView(),
+  );
 }
 
 class _CubitCartView extends StatelessWidget {
@@ -39,7 +42,20 @@ class _CubitCartView extends StatelessWidget {
       }
     },
     child: Scaffold(
-      appBar: AppBar(title: const Text('Cart · Cubit')),
+      appBar: AppBar(
+        title: const Text('Cart · Cubit'),
+        actions: [
+          BlocBuilder<CartCubit, CartState>(
+            buildWhen: (previous, current) =>
+                previous.canUndo != current.canUndo,
+            builder: (context, state) => TextButton.icon(
+              onPressed: state.canUndo ? context.read<CartCubit>().undo : null,
+              icon: const Icon(Icons.undo),
+              label: const Text('Undo'),
+            ),
+          ),
+        ],
+      ),
       body: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) => Column(
           children: [
@@ -49,7 +65,17 @@ class _CubitCartView extends StatelessWidget {
                 onAdd: context.read<CartCubit>().add,
                 onQtyChanged: context.read<CartCubit>().changeQty,
                 onApplyCoupon: context.read<CartCubit>().applyCoupon,
+                showSummary: false,
               ),
+            ),
+            BlocSelector<CartCubit, CartState, (List<CartLine>, String?)>(
+              selector: (state) => (state.lines, state.coupon),
+              builder: (context, summary) {
+                debugPrint('Cubit summary rebuilt: ${summary.$1.subtotal}');
+                return CartSummary(
+                  state: CartState(lines: summary.$1, coupon: summary.$2),
+                );
+              },
             ),
             CheckoutBar(
               state: state,

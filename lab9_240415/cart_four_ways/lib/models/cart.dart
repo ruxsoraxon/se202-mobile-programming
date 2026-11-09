@@ -38,6 +38,7 @@ class CartState {
     this.status = CheckoutStatus.idle,
     this.orderId,
     this.checkoutError,
+    this.canUndo = false,
   });
 
   final List<CartLine> lines;
@@ -46,6 +47,7 @@ class CartState {
   final CheckoutStatus status;
   final String? orderId;
   final String? checkoutError;
+  final bool canUndo;
 
   int get itemCount => lines.itemCount;
   double get subtotal => lines.subtotal;
@@ -63,6 +65,7 @@ class CartState {
     bool clearCouponError = false,
     bool clearOrderId = false,
     bool clearCheckoutError = false,
+    bool? canUndo,
   }) => CartState(
     lines: lines ?? this.lines,
     coupon: clearCoupon ? null : coupon ?? this.coupon,
@@ -72,6 +75,7 @@ class CartState {
     checkoutError: clearCheckoutError
         ? null
         : checkoutError ?? this.checkoutError,
+    canUndo: canUndo ?? this.canUndo,
   );
 
   @override
@@ -83,6 +87,7 @@ class CartState {
           other.status == status &&
           other.orderId == orderId &&
           other.checkoutError == checkoutError &&
+          other.canUndo == canUndo &&
           other.lines.length == lines.length &&
           List.generate(
             lines.length,
@@ -97,6 +102,7 @@ class CartState {
     status,
     orderId,
     checkoutError,
+    canUndo,
   );
 }
 
