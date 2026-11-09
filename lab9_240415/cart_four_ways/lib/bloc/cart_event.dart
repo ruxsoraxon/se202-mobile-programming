@@ -23,3 +23,7 @@ final class CouponApplied extends CartEvent {
 final class CheckoutRequested extends CartEvent {
   const CheckoutRequested();
 }
+
+final class UndoRequested extends CartEvent {
+  const UndoRequested();
+}

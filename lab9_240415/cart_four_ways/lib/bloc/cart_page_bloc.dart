@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/cart.dart';
 import '../widgets/cart_body.dart';
+import '../services/checkout_api.dart';
 import '../setstate/cart_page_setstate.dart' show CheckoutBar;
 import 'cart_bloc.dart';
 import 'cart_event.dart';
@@ -10,8 +11,10 @@ import 'cart_event.dart';
 class CartPageBloc extends StatelessWidget {
   const CartPageBloc({super.key});
   @override
-  Widget build(BuildContext context) =>
-      BlocProvider(create: (_) => CartBloc(), child: const _BlocCartView());
+  Widget build(BuildContext context) => BlocProvider(
+    create: (_) => CartBloc(CheckoutApi()),
+    child: const _BlocCartView(),
+  );
 }
 
 class _BlocCartView extends StatelessWidget {
@@ -41,7 +44,22 @@ class _BlocCartView extends StatelessWidget {
       }
     },
     child: Scaffold(
-      appBar: AppBar(title: const Text('Cart · BLoC')),
+      appBar: AppBar(
+        title: const Text('Cart · BLoC'),
+        actions: [
+          BlocBuilder<CartBloc, CartState>(
+            buildWhen: (previous, current) =>
+                previous.canUndo != current.canUndo,
+            builder: (context, state) => TextButton.icon(
+              onPressed: state.canUndo
+                  ? () => context.read<CartBloc>().add(const UndoRequested())
+                  : null,
+              icon: const Icon(Icons.undo),
+              label: const Text('Undo'),
+            ),
+          ),
+        ],
+      ),
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) => Column(
           children: [
@@ -54,7 +72,17 @@ class _BlocCartView extends StatelessWidget {
                     context.read<CartBloc>().add(QuantityChanged(id, delta)),
                 onApplyCoupon: (code) =>
                     context.read<CartBloc>().add(CouponApplied(code)),
+                showSummary: false,
               ),
+            ),
+            BlocSelector<CartBloc, CartState, (List<CartLine>, String?)>(
+              selector: (state) => (state.lines, state.coupon),
+              builder: (context, summary) {
+                debugPrint('BLoC summary rebuilt: ${summary.$1.subtotal}');
+                return CartSummary(
+                  state: CartState(lines: summary.$1, coupon: summary.$2),
+                );
+              },
             ),
             CheckoutBar(
               state: state,
