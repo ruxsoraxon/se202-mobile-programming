@@ -11,7 +11,8 @@ dependencies:
     sdk: flutter
   image_picker: ^1.1.2
   image: ^4.2.0
-  tflite_flutter: ^0.11.0
+  http: ^1.5.0
+  tflite_flutter: ^0.12.1
 
 dev_dependencies:
   flutter_test:

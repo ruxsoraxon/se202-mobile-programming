@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../services/flower_classifier.dart';
 
@@ -39,8 +40,66 @@ class _ClassifierPageState extends State<ClassifierPage> {
     try {
       final picked = await _picker.pickImage(source: source, imageQuality: 92);
       if (picked == null || !mounted) return;
-      setState(() { _image = File(picked.path); _predictions = const []; _error = null; _classifying = true; });
-      final predictions = await _classifier!.classify(File(picked.path));
+      await _classifyFile(File(picked.path));
+    } catch (error) {
+      if (mounted) setState(() { _classifying = false; _error = 'Could not classify this image. Please try another photo.\n$error'; });
+    }
+  }
+
+  Future<void> _chooseImageFromUrl() async {
+    final url = await showDialog<String>(
+      context: context,
+      builder: (_) => const _ImageUrlDialog(),
+    );
+    if (url == null || url.trim().isEmpty || !mounted) return;
+
+    try {
+      final uri = Uri.parse(url.trim());
+      if (uri.scheme != 'https' && uri.scheme != 'http') {
+        throw const FormatException('Use an http or https image URL.');
+      }
+      setState(() { _error = null; _classifying = true; });
+      final response = await http.get(uri).timeout(const Duration(seconds: 25));
+      final contentType = response.headers['content-type']?.split(';').first.trim().toLowerCase();
+      if (response.statusCode != 200) {
+        throw HttpException('The image server returned ${response.statusCode}.');
+      }
+      if (contentType == null || !contentType.startsWith('image/')) {
+        throw const FormatException('That URL did not return an image.');
+      }
+      if (response.bodyBytes.isEmpty || response.bodyBytes.length > 15 * 1024 * 1024) {
+        throw const FormatException('Choose an image smaller than 15 MB.');
+      }
+      final extension = switch (contentType) {
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+        _ => 'jpg',
+      };
+      final file = File(
+        '${Directory.systemTemp.path}/bloom_${DateTime.now().microsecondsSinceEpoch}.$extension',
+      );
+      await file.writeAsBytes(response.bodyBytes, flush: true);
+      await _classifyFile(file);
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _classifying = false;
+          _error = 'Could not import that image URL. Check the link and try again.\n$error';
+        });
+      }
+    }
+  }
+
+  Future<void> _classifyFile(File file) async {
+    setState(() {
+      _image = file;
+      _predictions = const [];
+      _error = null;
+      _classifying = true;
+    });
+    try {
+      final predictions = await _classifier!.classify(file);
       if (mounted) setState(() { _predictions = predictions; _classifying = false; });
     } catch (error) {
       if (mounted) setState(() { _classifying = false; _error = 'Could not classify this image. Please try another photo.\n$error'; });
@@ -111,6 +170,27 @@ class _ClassifierPageState extends State<ClassifierPage> {
             const SizedBox(width: 10),
             Expanded(child: OutlinedButton.icon(onPressed: _loadingModel || _classifier == null ? null : () => _chooseImage(ImageSource.gallery), icon: const Icon(Icons.photo_library_outlined), label: const Text('Choose photo'), style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52), foregroundColor: const Color(0xFF28745C), side: const BorderSide(color: Color(0xFFADC2B4)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
           ])),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _loadingModel || _classifier == null || _classifying
+                    ? null
+                    : _chooseImageFromUrl,
+                icon: const Icon(Icons.link_rounded),
+                label: const Text('Import from URL'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 48),
+                  foregroundColor: const Color(0xFF28745C),
+                  side: const BorderSide(color: Color(0xFFADC2B4)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ]),
       );
 
@@ -158,5 +238,47 @@ class _ClassifierPageState extends State<ClassifierPage> {
             ),
           ],
         ),
+      );
+}
+
+class _ImageUrlDialog extends StatefulWidget {
+  const _ImageUrlDialog();
+
+  @override
+  State<_ImageUrlDialog> createState() => _ImageUrlDialogState();
+}
+
+class _ImageUrlDialogState extends State<_ImageUrlDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Import a flower photo'),
+        content: TextField(
+          controller: _controller,
+          keyboardType: TextInputType.url,
+          textInputAction: TextInputAction.go,
+          decoration: const InputDecoration(
+            hintText: 'https://example.com/flower.jpg',
+            labelText: 'Image URL',
+          ),
+          onSubmitted: (_) => Navigator.pop(context, _controller.text),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, _controller.text),
+            child: const Text('Import'),
+          ),
+        ],
       );
 }
