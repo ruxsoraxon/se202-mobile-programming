@@ -31,19 +31,19 @@ The app bundles the model and labels from `assets/model/`. Declaring that specif
 
 The `image` package can decode and resize bytes in Dart without Flutter platform services, and `http` can be tested as ordinary Dart networking code with a mocked client. `tflite_flutter` invokes the TensorFlow Lite native runtime, while `image_picker` uses platform channels to access camera/gallery APIs; those platform integrations need Flutter/plugin or device-aware tests.
 
-**Setup checkpoint:** verify `flutter pub get`, `flutter analyze`, and a device launch after running the app. The current app configuration includes the model and labels assets, `image_picker`, `image`, and `tflite_flutter`. The URL-download dependency and flow are not implemented yet.
+**Setup checkpoint:** `flutter pub get`, `flutter analyze`, parser tests, and a debug APK build/install have completed successfully. The app bundles the model and labels, uses `image_picker` for camera/gallery, and `http` for image URL imports. The classifier instance is loaded once by the app and shared across screens.
 
 ## Part 3 — Classifier
 
-The app loads one `FlowerClassifier` when the classifier screen starts, shares it for photo predictions, and closes it when that screen is disposed. The class count comes from the model output tensor and is checked against the number of parsed labels; it is not a separately hard-coded number. If the model is retrained with a seventh class, replace the model and labels file together with the same export and verify the output shape and predictions.
+The app loads one `FlowerClassifier` at startup, shares it across the Home, Classifier, and Model screens, and closes it when the app is disposed. The class count comes from the model output tensor and is checked against the number of parsed labels; it is not separately hard-coded. If the model is retrained with a seventh class, replace the model and labels file together with the same export and verify the output shape and predictions.
 
 Changing normalization from `pixel / 127.5 - 1` to `pixel / 255` changes the model input distribution from `[-1, 1]` to `[0, 1]`. The tensor still contains valid floating-point values with the expected shape, so inference can run without crashing, but the inputs no longer match training and the scores can become unreliable.
 
 **Classifier checks:**
 
-- `parseLabels` normal labels test: **Pending test run/addition.**
-- Windows line endings, blank line, and multiword label test: **Pending test run/addition.**
-- Correct top label and probabilities totaling approximately 1.0: **Pending phone test.**
+- `parseLabels` numbered labels test: **Passed.**
+- Windows line endings, blank line, and multiword label test: **Passed.**
+- Top predictions and confidence scores were displayed during the 18-image phone evaluation above; a sum check for every output vector is **not recorded**.
 - Invalid image and missing-model messages: **Pending verification.**
 
 ## Part 4 — Design and screens
@@ -56,18 +56,18 @@ Changing normalization from `pixel / 127.5 - 1` to `pixel / 255` changes the mod
 - Licence/reuse terms: **TODO**
 - Reference exports: `docs/design-1.png` and `docs/design-2.png` (**TODO**)
 
-The current app presents the flower classifier in a single screen. It does not yet implement the handout’s separate Welcome, Home, Result, History, and Model screens or a shared `ThemeData` file.
+The app implements Welcome, Home, Classifier, Result, History, and Model screens with a shared `ThemeData` in `lib/theme/app_theme.dart`. One app-owned classifier instance supplies predictions and the labels shown on the Model screen. History is an in-memory session list; it resets when the app process is restarted.
 
 **Two design changes and why:**
 
-1. **TODO:** describe a design element changed or omitted and the reason.
-2. **TODO:** describe another design element changed or omitted and the reason.
+1. The Welcome and Home pages use a light botanical palette and a small illustration made from built-in Material icons. This keeps the app visually focused without adding large decorative image assets.
+2. Classification results have a dedicated page with a ranked score list and a confidence note. The evaluation showed high-confidence mistakes, so the interface clarifies that confidence is a model score, not a correctness guarantee.
 
-The Model screen should read labels from the already-loaded classifier instance. That keeps the displayed class list consistent with the model used for inference and avoids loading/parsing the same asset a second time.
+The implementation uses an original Flutter layout; no external Figma Community file or artwork was used. If the instructor requires a Community-file reference specifically, select one and add its author, link, reuse terms, and reference exports before submission.
 
 ## Part 5 — Sources and evaluation
 
-The current screen supports camera capture, gallery selection, and image import from a URL. I exercised gallery and URL imports on the Samsung SM-A556E. A separate Result screen and session History screen are still not implemented.
+The app supports camera capture, gallery selection, and image import from a URL. Gallery and URL imports were exercised on the Samsung SM-A556E, producing the 18 recorded model results below. The updated multi-screen debug APK built and installed on that phone. The phone was locked/dozing during the final installation, so I could not visually walk through the refactored screen navigation or repeat the image evaluation on this build.
 
 ### Phone evaluation
 
@@ -112,8 +112,12 @@ Two training-data reasons are differences in lighting/color balance and differen
 - [x] Model file and six-line labels file are committed under `assets/model/`.
 - [ ] `docs/preview.png` added after previewing the model on a fresh example per class.
 - [ ] `docs/design-1.png` and `docs/design-2.png` added; Figma source and licence credited here and in the app.
-- [ ] Five required screens and the three image sources implemented and demonstrated.
-- [ ] At least two label-parser tests pass.
-- [x] `flutter analyze` is clean after the URL-dialog lifecycle fix.
-- [ ] Camera demonstration, stopwatch timing of the model call, and remaining checkpoint answers completed.
+- [x] Welcome, Home, Result, History, and Model screens implemented; Classifier is a separate screen in the photo flow.
+- [x] At least two label-parser tests pass.
+- [x] `flutter analyze` is clean.
+- [x] Debug APK builds and installs on the Samsung SM-A556E.
+- [x] The Result page displays the measured TensorFlow Lite inference duration in milliseconds.
+- [ ] Capture a timing value and visually verify the updated screen flow after unlocking the phone; complete a camera demonstration with a real flower.
+- [x] The written model and data-source checkpoint answers above are complete.
+- [x] Camera, Gallery, and URL source flows are implemented.
 - [ ] Under-60-second screen recording shows camera, gallery, URL download, and History.

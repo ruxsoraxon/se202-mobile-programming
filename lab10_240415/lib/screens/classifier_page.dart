@@ -1,48 +1,44 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+
+import '../models/classification_record.dart';
 import '../services/flower_classifier.dart';
+import '../theme/app_theme.dart';
+import 'result_page.dart';
 
 class ClassifierPage extends StatefulWidget {
-  const ClassifierPage({super.key});
+  const ClassifierPage({
+    required this.classifier,
+    required this.onClassified,
+    super.key,
+  });
+
+  final FlowerClassifier classifier;
+  final ValueChanged<ClassificationRecord> onClassified;
+
   @override
   State<ClassifierPage> createState() => _ClassifierPageState();
 }
 
 class _ClassifierPageState extends State<ClassifierPage> {
-  final _picker = ImagePicker();
-  FlowerClassifier? _classifier;
-  File? _image;
-  List<FlowerPrediction> _predictions = const [];
-  bool _loadingModel = true;
+  final ImagePicker _picker = ImagePicker();
   bool _classifying = false;
   String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadModel();
-  }
-
-  Future<void> _loadModel() async {
-    try {
-      final classifier = await FlowerClassifier.load();
-      if (!mounted) return;
-      setState(() { _classifier = classifier; _loadingModel = false; });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() { _loadingModel = false; _error = 'Could not load the flower model. Check that the model and labels are valid.\n$error'; });
-    }
-  }
 
   Future<void> _chooseImage(ImageSource source) async {
     try {
       final picked = await _picker.pickImage(source: source, imageQuality: 92);
       if (picked == null || !mounted) return;
-      await _classifyFile(File(picked.path));
+      await _classifyFile(File(picked.path),
+          source == ImageSource.camera ? 'Camera' : 'Gallery');
     } catch (error) {
-      if (mounted) setState(() { _classifying = false; _error = 'Could not classify this image. Please try another photo.\n$error'; });
+      if (mounted) {
+        setState(() => _error =
+            'Could not open that image. Check the camera or photo permission and try again.\n$error');
+      }
     }
   }
 
@@ -53,21 +49,31 @@ class _ClassifierPageState extends State<ClassifierPage> {
     );
     if (url == null || url.trim().isEmpty || !mounted) return;
 
+    File? downloadedFile;
     try {
       final uri = Uri.parse(url.trim());
       if (uri.scheme != 'https' && uri.scheme != 'http') {
         throw const FormatException('Use an http or https image URL.');
       }
-      setState(() { _error = null; _classifying = true; });
+      setState(() {
+        _error = null;
+        _classifying = true;
+      });
       final response = await http.get(uri).timeout(const Duration(seconds: 25));
-      final contentType = response.headers['content-type']?.split(';').first.trim().toLowerCase();
+      final contentType = response.headers['content-type']
+          ?.split(';')
+          .first
+          .trim()
+          .toLowerCase();
       if (response.statusCode != 200) {
-        throw HttpException('The image server returned ${response.statusCode}.');
+        throw HttpException(
+            'The image server returned ${response.statusCode}.');
       }
       if (contentType == null || !contentType.startsWith('image/')) {
         throw const FormatException('That URL did not return an image.');
       }
-      if (response.bodyBytes.isEmpty || response.bodyBytes.length > 15 * 1024 * 1024) {
+      if (response.bodyBytes.isEmpty ||
+          response.bodyBytes.length > 15 * 1024 * 1024) {
         throw const FormatException('Choose an image smaller than 15 MB.');
       }
       final extension = switch (contentType) {
@@ -76,168 +82,179 @@ class _ClassifierPageState extends State<ClassifierPage> {
         'image/gif' => 'gif',
         _ => 'jpg',
       };
-      final file = File(
+      downloadedFile = File(
         '${Directory.systemTemp.path}/bloom_${DateTime.now().microsecondsSinceEpoch}.$extension',
       );
-      await file.writeAsBytes(response.bodyBytes, flush: true);
-      await _classifyFile(file);
+      await downloadedFile.writeAsBytes(response.bodyBytes, flush: true);
+      await _classifyFile(downloadedFile, 'URL');
     } catch (error) {
       if (mounted) {
         setState(() {
           _classifying = false;
-          _error = 'Could not import that image URL. Check the link and try again.\n$error';
+          _error =
+              'Could not import that image URL. Check the link and try again.\n$error';
         });
+      }
+      if (downloadedFile != null && await downloadedFile.exists()) {
+        await downloadedFile.delete();
       }
     }
   }
 
-  Future<void> _classifyFile(File file) async {
+  Future<void> _classifyFile(File file, String source) async {
     setState(() {
-      _image = file;
-      _predictions = const [];
-      _error = null;
       _classifying = true;
+      _error = null;
     });
     try {
-      final predictions = await _classifier!.classify(file);
-      if (mounted) setState(() { _predictions = predictions; _classifying = false; });
+      final predictions = await widget.classifier.classify(file);
+      if (!mounted) return;
+      final record = ClassificationRecord(
+        image: file,
+        source: source,
+        predictions: predictions,
+        createdAt: DateTime.now(),
+        modelInferenceTime: widget.classifier.lastInferenceTime,
+      );
+      widget.onClassified(record);
+      await Navigator.of(context).push<void>(MaterialPageRoute(
+        builder: (_) => ResultPage(record: record),
+      ));
     } catch (error) {
-      if (mounted) setState(() { _classifying = false; _error = 'Could not classify this image. Please try another photo.\n$error'; });
+      if (mounted) {
+        setState(() => _error =
+            'Could not classify this image. Please choose another photo.\n$error');
+      }
+    } finally {
+      if (mounted) setState(() => _classifying = false);
     }
   }
 
   @override
-  void dispose() { _classifier?.close(); super.dispose(); }
-
-  @override
   Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Identify a flower')),
         body: SafeArea(
-          child: CustomScrollView(slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
-              sliver: SliverList.list(children: [
-                _header(),
-                const SizedBox(height: 34),
-                const Text('A little closer to\nnature.', style: TextStyle(fontSize: 38, height: 1.08, fontWeight: FontWeight.w700, letterSpacing: -1.5)),
-                const SizedBox(height: 12),
-                Text('Snap a flower or choose a photo. Bloom will tell you what it is.', style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black.withValues(alpha: .58))),
-                const SizedBox(height: 26),
-                _photoCard(),
-                if (_error != null) ...[
-                  const SizedBox(height: 16),
-                  _errorCard(_error!),
-                ],
-                if (_predictions.isNotEmpty) ...[
-                  const SizedBox(height: 26),
-                  _results(),
-                ],
-                const SizedBox(height: 28),
-                Row(children: [
-                  const Icon(Icons.eco_outlined, size: 18, color: Color(0xFF28745C)),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text('Private by nature · Images stay on your device', style: TextStyle(fontSize: 12, color: Colors.black.withValues(alpha: .52)))),
-                ]),
-              ]),
-            ),
-          ]),
-        ),
-      );
-
-  Widget _header() => Row(children: [
-        Container(width: 42, height: 42, decoration: BoxDecoration(color: const Color(0xFF28745C), borderRadius: BorderRadius.circular(15)), child: const Icon(Icons.local_florist_rounded, color: Colors.white)),
-        const SizedBox(width: 11),
-        const Text('bloom', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700, letterSpacing: -.7)),
-        const Spacer(),
-        Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: const Color(0xFFE5EEE8), borderRadius: BorderRadius.circular(30)), child: Row(children: [const Icon(Icons.circle, size: 8, color: Color(0xFF28745C)), const SizedBox(width: 7), Text(_loadingModel ? 'Starting' : _classifier != null ? 'Model ready' : 'Model issue', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF28745C)))])),
-      ]);
-
-  Widget _photoCard() => Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(color: const Color(0xFFE8EDE4), borderRadius: BorderRadius.circular(28)),
-        child: Column(children: [
-          SizedBox(height: 245, width: double.infinity, child: _image == null
-              ? Stack(fit: StackFit.expand, children: [
-                  const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFE7EEDF), Color(0xFFD9E8D9)]))),
-                  Positioned(right: 20, top: 16, child: _flower(Icons.local_florist, 34, const Color(0xFFE5A85B))),
-                  Positioned(left: 25, bottom: 25, child: _flower(Icons.filter_vintage, 26, const Color(0xFFCF7C7B))),
-                  Positioned(right: 80, bottom: 20, child: _flower(Icons.spa, 24, const Color(0xFF729D75))),
-                  Center(child: Container(width: 116, height: 116, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .56), shape: BoxShape.circle), child: const Icon(Icons.add_photo_alternate_outlined, size: 47, color: Color(0xFF28745C)))),
-                  const Positioned(left: 0, right: 0, bottom: 58, child: Text('Your next flower is waiting', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF355949)))),
-                ])
-              : Stack(fit: StackFit.expand, children: [Image.file(_image!, fit: BoxFit.cover), if (_classifying) Container(color: Colors.black.withValues(alpha: .35), child: const Center(child: CircularProgressIndicator(color: Colors.white))) ])),
-          Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-            Expanded(child: FilledButton.icon(onPressed: _loadingModel || _classifier == null ? null : () => _chooseImage(ImageSource.camera), icon: const Icon(Icons.camera_alt_outlined), label: const Text('Take photo'), style: FilledButton.styleFrom(minimumSize: const Size(0, 52), backgroundColor: const Color(0xFF28745C), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
-            const SizedBox(width: 10),
-            Expanded(child: OutlinedButton.icon(onPressed: _loadingModel || _classifier == null ? null : () => _chooseImage(ImageSource.gallery), icon: const Icon(Icons.photo_library_outlined), label: const Text('Choose photo'), style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52), foregroundColor: const Color(0xFF28745C), side: const BorderSide(color: Color(0xFFADC2B4)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
-          ])),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _loadingModel || _classifier == null || _classifying
-                    ? null
-                    : _chooseImageFromUrl,
-                icon: const Icon(Icons.link_rounded),
-                label: const Text('Import from URL'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(0, 48),
-                  foregroundColor: const Color(0xFF28745C),
-                  side: const BorderSide(color: Color(0xFFADC2B4)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+          top: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(22, 8, 22, 28),
+            children: [
+              Text('Choose a photo source',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      )),
+              const SizedBox(height: 8),
+              const Text(
+                'Take a new picture, pick one from your gallery, or paste an image link.',
+                style: TextStyle(color: Color(0xFF65766C), height: 1.45),
+              ),
+              const SizedBox(height: 22),
+              Container(
+                height: 260,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFE7EEDF), Color(0xFFD9E8D9)],
                   ),
                 ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(Icons.local_florist_rounded,
+                        size: 112,
+                        color: AppTheme.green.withValues(alpha: .76)),
+                    const Positioned(
+                      top: 25,
+                      right: 37,
+                      child: Icon(Icons.auto_awesome_rounded,
+                          color: Color(0xFFE4A554), size: 28),
+                    ),
+                    if (_classifying)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: .28),
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: _classifying
+                    ? null
+                    : () => _chooseImage(ImageSource.camera),
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text('Take a photo'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _classifying
+                    ? null
+                    : () => _chooseImage(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library_outlined),
+                label: const Text('Choose from gallery'),
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _classifying ? null : _chooseImageFromUrl,
+                icon: const Icon(Icons.link_rounded),
+                label: const Text('Import from URL'),
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)),
+              ),
+              if (_classifying) ...[
+                const SizedBox(height: 14),
+                const Text('Looking closely at your photo…',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppTheme.green)),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 16),
+                _ErrorCard(message: _error!),
+              ],
+              const SizedBox(height: 22),
+              const Row(children: [
+                Icon(Icons.lock_outline_rounded,
+                    size: 17, color: AppTheme.green),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Photo classification runs on-device. URL images are downloaded temporarily.',
+                    style: TextStyle(
+                        color: Color(0xFF728176), fontSize: 12, height: 1.35),
+                  ),
+                ),
+              ]),
+            ],
           ),
-        ]),
+        ),
       );
+}
 
-  Widget _results() {
-    final best = _predictions.first;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('YOUR FLOWER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.6, color: Color(0xFF668071))),
-      const SizedBox(height: 10),
-      Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFE9ECE5))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Container(width: 54, height: 54, decoration: const BoxDecoration(color: Color(0xFFE5EEE8), shape: BoxShape.circle), child: const Icon(Icons.local_florist_rounded, color: Color(0xFF28745C), size: 28)), const SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(_title(best.label), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)), const SizedBox(height: 3), Text('${(best.confidence * 100).round()}% match', style: const TextStyle(fontSize: 14, color: Color(0xFF668071)))]))]),
-        const SizedBox(height: 22),
-        const Text('OTHER POSSIBILITIES', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.35, color: Color(0xFF87958A))),
-        const SizedBox(height: 14),
-        for (final prediction in _predictions.skip(1)) ...[
-          Row(children: [Expanded(child: Text(_title(prediction.label), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))), Text('${(prediction.confidence * 100).round()}%', style: const TextStyle(fontSize: 12, color: Color(0xFF718177)))]),
-          const SizedBox(height: 7),
-          ClipRRect(borderRadius: BorderRadius.circular(8), child: LinearProgressIndicator(value: prediction.confidence, minHeight: 5, backgroundColor: const Color(0xFFF0F2EC), color: const Color(0xFF8CAB91))),
-          const SizedBox(height: 13),
-        ],
-      ])),
-    ]);
-  }
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.message});
+  final String message;
 
-  String _title(String value) => value.isEmpty ? value : '${value[0].toUpperCase()}${value.substring(1)}';
-  Widget _flower(IconData icon, double size, Color color) => Icon(icon, size: size, color: color.withValues(alpha: .86));
-  Widget _errorCard(String text) => Container(
-        padding: const EdgeInsets.all(16),
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: const Color(0xFFFFEEEE),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.info_outline, color: Color(0xFFAA4646)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                text,
-                style: const TextStyle(
-                  color: Color(0xFF7A3636),
-                  height: 1.45,
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Icon(Icons.info_outline, color: Color(0xFFAA4646)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(message,
+                style: const TextStyle(color: Color(0xFF7A3636), height: 1.4)),
+          ),
+        ]),
       );
 }
 
@@ -249,7 +266,7 @@ class _ImageUrlDialog extends StatefulWidget {
 }
 
 class _ImageUrlDialogState extends State<_ImageUrlDialog> {
-  final _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
 
   @override
   void dispose() {
@@ -272,13 +289,11 @@ class _ImageUrlDialogState extends State<_ImageUrlDialog> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => Navigator.pop(context, _controller.text),
-            child: const Text('Import'),
-          ),
+              onPressed: () => Navigator.pop(context, _controller.text),
+              child: const Text('Import')),
         ],
       );
 }

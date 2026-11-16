@@ -1,10 +1,16 @@
-# Lab 10 — Teachable Machine Flower Classifier
+# Bloom — Lab 10 Flower Classifier
 
-A Flutter app that classifies flower photos on-device with the supplied six-class Teachable Machine TensorFlow Lite model.
+Bloom is a Flutter app that classifies flower photos with a bundled Teachable Machine TensorFlow Lite model. Photo inference runs on-device.
 
-## Classes
+## Screens and features
 
-The class order comes from `assets/model/labels.txt`: rose, sunflower, tulip, lily, daisy, dandelion.
+- Welcome and Home screens with a short introduction and entry to classification.
+- Classifier screen with camera, gallery, and image URL sources.
+- Result screen with ranked class scores and TensorFlow Lite inference time.
+- Session History screen with tappable previous results.
+- Model screen whose class list is read from the loaded model labels.
+
+History is kept in memory for the current app session and is cleared when the process restarts.
 
 ## Run
 
@@ -13,10 +19,17 @@ flutter pub get
 flutter run
 ```
 
-Open the app and choose **Take photo** or **Choose photo**. The app shows the top class and confidence scores for the remaining classes. Inference runs locally; the image is not uploaded.
+Without a USB-connected phone, create/start an Android emulator in Android Studio, then run `flutter run` and choose that emulator. To list available emulator profiles, use `flutter emulators`.
 
-## Model compatibility
+Run the included label parser tests and static analyzer with:
 
-Keep `model_unquant.tflite` and `labels.txt` from the same Teachable Machine export together in `assets/model/`. The app reads the input image size and class count from the model. This implementation expects an RGB image input and uses Teachable Machine's standard RGB normalization to `[-1, 1]`.
+```sh
+flutter test
+flutter analyze
+```
 
-Camera and photo-library permission declarations are included in the Android and iOS app configuration.
+## Model files
+
+Keep `assets/model/model_unquant.tflite` and `assets/model/labels.txt` together from the same Teachable Machine export. The app reads the image size and output class count from the model and checks that the label count matches. The current model has six classes: rose, sunflower, tulip, lily, daisy, and dandelion. It expects an RGB image and uses the export's `[-1, 1]` pixel normalization.
+
+The app can confidently misclassify unfamiliar photos; confidence is a score over these six classes, not an unknown-class detector. Evaluation results and remaining submission evidence are documented in [NOTES.md](NOTES.md).
