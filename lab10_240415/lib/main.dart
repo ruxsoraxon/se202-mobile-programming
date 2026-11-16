@@ -64,11 +64,14 @@ class _FlowerClassifierAppState extends State<FlowerClassifierApp> {
             ? const _StartupPage()
             : _classifier == null
                 ? _ModelErrorPage(error: _loadError, onRetry: _loadModel)
-                : WelcomePage(
-                    classifier: _classifier!,
-                    onContinue: () => Navigator.of(context).pushReplacement(
-                      MaterialPageRoute<void>(
-                        builder: (_) => AppShell(classifier: _classifier!),
+                : Builder(
+                    builder: (navigatorContext) => WelcomePage(
+                      classifier: _classifier!,
+                      onContinue: () =>
+                          Navigator.of(navigatorContext).pushReplacement(
+                        MaterialPageRoute<void>(
+                          builder: (_) => AppShell(classifier: _classifier!),
+                        ),
                       ),
                     ),
                   ),

@@ -67,7 +67,9 @@ The implementation uses an original Flutter layout; no external Figma Community 
 
 ## Part 5 — Sources and evaluation
 
-The app supports camera capture, gallery selection, and image import from a URL. Gallery and URL imports were exercised on the Samsung SM-A556E, producing the 18 recorded model results below. The updated multi-screen debug APK built and installed on that phone. The phone was locked/dozing during the final installation, so I could not visually walk through the refactored screen navigation or repeat the image evaluation on this build.
+The app supports camera capture, gallery selection, and image import from a URL. Gallery and URL imports were exercised on the Samsung SM-A556E, producing the 18 recorded model results below. The updated multi-screen debug APK was also built, installed, and smoke-tested on that phone after it was unlocked.
+
+**Updated-flow smoke check (separate from the 18-image accuracy count):** I verified Welcome → Home, History, Model, Classifier → Gallery → Result, and opening the saved History result. A Tulip photo from `Lab10Eval` predicted **Tulip (100%)**; the measured `Interpreter.run` time was **190 ms**. See [the refactored Result screen](docs/evaluation/tulip-result-refactored.png) and [the timing capture](docs/evaluation/tulip-inference-time.png).
 
 ### Phone evaluation
 
@@ -99,7 +101,7 @@ The URL attempts used a temporary HTTP server bound to the development computer�
 - Overall accuracy: **10/18 (55.6%)**. The five visually labeled Kaggle classes scored 10/15 (66.7%); Lily scored 0/3 on the separate Oxford samples.
 - Per class: Rose 2/3, Sunflower 2/3, Tulip 3/3, Lily 0/3, Daisy 2/3, Dandelion 1/3.
 - Weakest class: **Lily (0/3)**. There were also high-confidence errors on a rose, a daisy, two dandelions, and all three Lily samples. Confidence is not a guarantee of correctness.
-- Phone response time: the result screen was visible by the approximately **2-second ADB capture checkpoint** after confirming/importing an image. This is an end-to-end upper bound, not a stopwatch measurement of `Interpreter.run` alone.
+- In the original 18-image run, the result screen was visible by the approximately **2-second ADB capture checkpoint** after confirming/importing an image; this is an end-to-end upper bound. The updated-flow smoke check separately measured `Interpreter.run` at **190 ms**; image decoding and preprocessing are outside that timer.
 - While classification runs, the selected image is dimmed and a centered circular progress indicator is shown.
 - Camera evaluation: **Pending a real flower being presented to the phone camera.** The 18 recorded attempts above use gallery and URL sources only.
 
@@ -117,7 +119,8 @@ Two training-data reasons are differences in lighting/color balance and differen
 - [x] `flutter analyze` is clean.
 - [x] Debug APK builds and installs on the Samsung SM-A556E.
 - [x] The Result page displays the measured TensorFlow Lite inference duration in milliseconds.
-- [ ] Capture a timing value and visually verify the updated screen flow after unlocking the phone; complete a camera demonstration with a real flower.
+- [x] Updated screen navigation, Gallery → Result, and History → Result were verified on the unlocked Samsung phone; `Interpreter.run` measured 190 ms in the smoke check.
+- [ ] Demonstrate the camera with a real flower.
 - [x] The written model and data-source checkpoint answers above are complete.
 - [x] Camera, Gallery, and URL source flows are implemented.
 - [ ] Under-60-second screen recording shows camera, gallery, URL download, and History.
