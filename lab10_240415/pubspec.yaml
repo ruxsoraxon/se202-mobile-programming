@@ -1,0 +1,25 @@
+name: lab10_240415
+description: Flower image classifier powered by a Teachable Machine model.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  image_picker: ^1.1.2
+  image: ^4.2.0
+  tflite_flutter: ^0.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/model/model_unquant.tflite
+    - assets/model/labels.txt
