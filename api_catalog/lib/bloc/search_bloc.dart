@@ -2,7 +2,6 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../data/product_api.dart';
-import '../models/product.dart';
 import 'search_event.dart';
 import 'search_state.dart';
 

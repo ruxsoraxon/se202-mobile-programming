@@ -23,13 +23,14 @@ void main() {
     addTearDown(api.close);
     final cubit = DetailsCubit(api);
     addTearDown(cubit.close);
-    final states = <ProductDetailsState>[];
-    final subscription = cubit.stream.listen(states.add);
-    addTearDown(subscription.cancel);
+    final states = expectLater(
+      cubit.stream,
+      emitsInOrder([isA<DetailsLoading>(), isA<DetailsLoaded>()]),
+    );
 
     await cubit.load(1);
 
-    expect(states, [isA<DetailsLoading>(), isA<DetailsLoaded>()]);
-    expect((states.last as DetailsLoaded).product.id, 1);
+    await states;
+    expect((cubit.state as DetailsLoaded).product.id, 1);
   });
 }

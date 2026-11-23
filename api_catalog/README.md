@@ -6,10 +6,10 @@ A Flutter REST API client backed by [DummyJSON](https://dummyjson.com/products).
 
 ```sh
 flutter pub get
-flutter run
+flutter run -d chrome
 ```
 
-The app needs internet access. DummyJSON is a public test API and does not require an account or API key.
+For a phone or emulator, use `flutter run` after connecting or starting an Android device. The app needs internet access. DummyJSON is a public test API and does not require an account or API key.
 
 To inspect the sample product response from the terminal:
 
@@ -27,6 +27,7 @@ lib/
   models/     product, dimensions, review, and product page
   screens/    catalogue, product detail, and search screens
 test/         model, API, Cubit, and Bloc tests
+NOTES.md      lab answers and completion checklist
 ```
 
 ## Check

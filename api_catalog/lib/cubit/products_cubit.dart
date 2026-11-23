@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../data/product_api.dart';
-import '../models/product.dart';
 import '../models/product_page.dart';
 
 sealed class ProductsState {
